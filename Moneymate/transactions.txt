@@ -1,0 +1,5 @@
+1001|INCOME|45000|Salary|2026-11-01|Monthly Stipend & Freelance
+1002|EXPENSE|3200|Food|2026-11-03|Mess & Cafe Dining
+1003|EXPENSE|1500|Travel|2026-11-05|Fuel & Mountain Commute
+1004|EXPENSE|2800|Academics|2026-11-07|Reference Books & Lab Kit
+1005|EXPENSE|1200|Entertainment|2026-11-10|Gaming & Subscriptions

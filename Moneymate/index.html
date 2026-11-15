@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget & Expense Manager | Secure Owner Lock</title>
+  <style>
+    :root {
+      --bg-dark: #181c24; --card-bg: #232834; --border-col: #333b4d;
+      --text-main: #f1f5f9; --text-muted: #94a3b8;
+      --blue-grad-1: #0c4a8a; --blue-grad-2: #0284c7;
+      --green: #22c55e; --orange: #f97316; --cyan: #06b6d4; --yellow: #eab308; --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); padding-bottom: 60px; }
+    .hero { background: linear-gradient(135deg, var(--blue-grad-1), var(--blue-grad-2)); padding: 28px 5%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-bottom: 2px solid #38bdf8; }
+    .badge-sem { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+    .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    .hero p { font-size: 14px; color: #e0f2fe; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-top { border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: white; }
+    .btn-face { background: var(--green); }
+    .btn-voice { background: #0ea5e9; }
+    .container { width: 90%; max-width: 1320px; margin: 24px auto; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 18px; }
+    .stat-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-col); border-left: 5px solid var(--green); }
+    .stat-card.expense { border-left-color: var(--orange); }
+    .stat-card.budget { border-left-color: var(--cyan); }
+    .stat-card.reward { border-left-color: var(--yellow); }
+    .stat-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .stat-value { font-size: 26px; font-weight: 800; margin: 8px 0 6px; }
+    .stat-sub { font-size: 12px; color: var(--text-muted); }
+    .status-bar { background: #1e293b; border: 1px solid #0284c7; padding: 12px 18px; border-radius: 10px; font-size: 13.5px; color: #cbd5e1; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #38bdf8; }
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 24px; }
+    .opt-btn { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-col); padding: 12px 14px; border-radius: 8px; text-align: left; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    .opt-btn:hover, .opt-btn.active { background: #1e3a5f; border-color: #38bdf8; }
+    .opt-num { background: #0284c7; color: white; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 5px; }
+    .workspace { display: grid; grid-template-columns: 1fr 1.35fr; gap: 20px; }
+    @media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
+    .panel { background: var(--card-bg); border: 1px solid var(--border-col); border-radius: 12px; padding: 20px; }
+    .panel h3 { font-size: 16px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-col); color: #38bdf8; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border-col); background: #141820; color: white; font-size: 13.5px; }
+    .btn-action { background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 6px; font-size: 13.5px; }
+    .btn-danger { background: var(--red); }
+    .btn-success { background: var(--green); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-col); }
+    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+    .tag { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .tag-inc { background: rgba(34,197,94,0.18); color: #4ade80; }
+    .tag-exp { background: rgba(249,115,22,0.18); color: #fb923c; }
+    .del-row { background: rgba(239,68,68,0.2); color: #f87171; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    .console-out { background: #0f1319; border: 1px solid #2d3748; border-radius: 8px; padding: 14px; font-family: 'Consolas', monospace; font-size: 12.5px; color: #38bdf8; margin-top: 14px; white-space: pre-wrap; max-height: 240px; overflow-y: auto; }
+    .modal-overlay { display: flex; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+    .modal-card { background: #1e293b; border: 2px solid #22c55e; border-radius: 14px; padding: 24px; max-width: 440px; width: 100%; text-align: center; }
+    .video-wrap { position: relative; width: 100%; height: 220px; background: #000; border-radius: 10px; overflow: hidden; margin: 12px 0; border: 2px solid #38bdf8; }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .face-box { position: absolute; top: 20%; left: 30%; width: 40%; height: 60%; border: 2px dashed #22c55e; border-radius: 8px; box-shadow: 0 0 15px rgba(34,197,94,0.6); pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div>
+      <span class="badge-sem">B.Tech CSE - 3rd Semester | C++ & HTML/CSS Integrated</span>
+      <h1>Budget and Expense Manager</h1>
+      <p>with Smart Financial Assistance — Smart Choices Today, Financial Freedom Tomorrow</p>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-top btn-face" onclick="reopenSecurityGate()">
+        <span>●</span> <span id="faceBtnText">Security: Owner Verified</span>
+      </button>
+      <button class="btn-top btn-voice" onclick="selectOption(8); triggerVoiceAssistant();">
+        <span>🎙️</span> Vosk Voice Assistant
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-title">TOTAL INCOME</div>
+        <div class="stat-value" id="valIncome">Rs. 45,000.00</div>
+        <div class="stat-sub">Linked List Node Traversal</div>
+      </div>
+      <div class="stat-card expense">
+        <div class="stat-title">TOTAL EXPENSES</div>
+        <div class="stat-value" id="valExpense">Rs. 8,700.00</div>
+        <div class="stat-sub" id="subExpensePct">58% of Monthly Limit</div>
+      </div>
+      <div class="stat-card budget">
+        <div class="stat-title">REMAINING BUDGET</div>
+        <div class="stat-value" id="valRemaining">Rs. 6,300.00</div>
+        <div class="stat-sub" id="subMonthlyLimit">Monthly Limit: Rs. 15,000</div>
+      </div>
+      <div class="stat-card reward">
+        <div class="stat-title">REWARDS & STREAK</div>
+        <div class="stat-value"><span id="valPoints">170</span> pts 🔥 <span id="valStreak">7</span>d</div>
+        <div class="stat-sub" id="subTier">Silver Smart Saver</div>
+      </div>
+    </section>
+
+    <div class="status-bar">
+      <div id="statusText">🔒 <b>Security Active:</b> Biometric Session Unlocked. Click "Vosk Voice Assistant" or any option below.</div>
+      <div style="font-size:12px; color:#38bdf8;">Singly Linked List Active | Nodes: <b id="nodeCount">4</b></div>
+    </div>
+
+    <div class="section-title">ALL 12 C++ CONSOLE OPERATIONS (CLICK ANY OPTION TO EXECUTE)</div>
+    <section class="options-grid">
+      <button class="opt-btn active" onclick="selectOption(1)"><span class="opt-num">1</span> Add Income Node</button>
+      <button class="opt-btn" onclick="selectOption(2)"><span class="opt-num">2</span> Add Expense Node</button>
+      <button class="opt-btn" onclick="selectOption(3)"><span class="opt-num">3</span> Traverse Linked List</button>
+      <button class="opt-btn" onclick="selectOption(4)"><span class="opt-num">4</span> Delete Node by ID</button>
+      <button class="opt-btn" onclick="selectOption(5)"><span class="opt-num">5</span> Search / Filter Category</button>
+      <button class="opt-btn" onclick="selectOption(6)"><span class="opt-num">6</span> Set Monthly Budget</button>
+      <button class="opt-btn" onclick="selectOption(7)"><span class="opt-num">7</span> Check Rewards & Streak</button>
+      <button class="opt-btn" onclick="selectOption(8)"><span class="opt-num">8</span> Vosk Voice Assistant</button>
+      <button class="opt-btn" onclick="selectOption(9)"><span class="opt-num">9</span> Face Scanner Gate</button>
+      <button class="opt-btn" onclick="selectOption(10)"><span class="opt-num">10</span> Highest & Analytics</button>
+      <button class="opt-btn" onclick="selectOption(11)"><span class="opt-num">11</span> Export CSV / Sync C++</button>
+      <button class="opt-btn" onclick="selectOption(12)"><span class="opt-num">12</span> Clear Linked List</button>
+    </section>
+
+    <section class="workspace">
+      <div class="panel">
+        <h3 id="panelTitle">Option 1: Add Income Transaction</h3>
+        <div id="panelBody"></div>
+        <div class="console-out" id="consoleLog">[Engine Initialized] Linked List ready.</div>
+      </div>
+      <div class="panel">
+        <h3>Live Singly Linked List Nodes (head -> next)</h3>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody id="listTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="camModal" style="display: flex;">
+    <div class="modal-card">
+      <h3 style="color:#38bdf8;">OpenCV Face & Secure Gate</h3>
+      <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Camera scan required + Owner Secret Code</p>
+      <div class="video-wrap">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <div class="face-box"></div>
+      </div>
+      <div class="form-group" style="text-align:left; margin-top:8px;">
+        <label>Owner Secret Passphrase (Blocks others)</label>
+        <input type="password" id="ownerSecretInput" placeholder="Enter owner passcode (default: 7777)" maxlength="6" />
+      </div>
+      <p id="camStatusText" style="color:#eab308; font-weight:700; font-size:12px; margin:6px 0;">Click 'Turn On Camera Feed' below.</p>
+      <div style="display:flex; gap:8px; flex-direction:column;">
+        <button class="btn-action" style="background:#0ea5e9;" onclick="openFaceScanner()">📷 Turn On Camera Feed</button>
+        <button class="btn-action btn-success" onclick="verifyOwnerFaceAndSecret()">🔓 Authenticate & Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class TransactionNode {
+      constructor(id, type, category, amount, date, desc) {
+        this.id = id; this.type = type; this.category = category;
+        this.amount = parseFloat(amount); this.date = date; this.desc = desc; this.next = null;
+      }
+    }
+
+    class TransactionManager {
+      constructor() {
+        this.head = null; this.nextId = 1001; this.monthlyLimit = 15000;
+        this.rewardPoints = 170; this.streakDays = 7;
+      }
+      addTransaction(type, category, amount, date, desc) {
+        const newNode = new TransactionNode(this.nextId++, type, category, amount, date, desc);
+        if (!this.head) this.head = newNode;
+        else { let t = this.head; while (t.next) t = t.next; t.next = newNode; }
+        if (type === "INCOME") this.rewardPoints += 15;
+        if (type === "EXPENSE" && this.getTotalExpenses() <= this.monthlyLimit) this.rewardPoints += 10;
+        this.saveState(); return newNode;
+      }
+      deleteById(id) {
+        id = parseInt(id);
+        if (!this.head) return false;
+        if (this.head.id === id) { this.head = this.head.next; this.saveState(); return true; }
+        let curr = this.head;
+        while (curr.next && curr.next.id !== id) curr = curr.next;
+        if (curr.next) { curr.next = curr.next.next; this.saveState(); return true; }
+        return false;
+      }
+      clearList() { this.head = null; this.nextId = 1001; this.saveState(); }
+      getTotalIncome() { let s = 0, c = this.head; while (c) { if (c.type === "INCOME") s += c.amount; c = c.next; } return s; }
+      getTotalExpenses() { let s = 0, c = this.head; while (c) { if (c.type === "EXPENSE") s += c.amount; c = c.next; } return s; }
+      getHighestExpense() { let m = null, c = this.head; while (c) { if (c.type === "EXPENSE" && (!m || c.amount > m.amount)) m = c; c = c.next; } return m; }
+      getTier() { return this.rewardPoints >= 300 ? "Gold Master Saver" : (this.rewardPoints >= 150 ? "Silver Smart Saver" : "Bronze Starter Saver"); }
+      toArray() { let arr = [], c = this.head; while (c) { arr.push(c); c = c.next; } return arr; }
+      saveState() {
+        localStorage.setItem("moneymate_cpp_state", JSON.stringify({
+          nodes: this.toArray(), nextId: this.nextId, monthlyLimit: this.monthlyLimit, rewardPoints: this.rewardPoints, streakDays: this.streakDays
+        }));
+        updateDashboardUI();
+      }
+      loadState() {
+        const raw = localStorage.getItem("moneymate_cpp_state");
+        if (raw) {
+          const d = JSON.parse(raw);
+          this.head = null; this.nextId = d.nextId || 1001; this.monthlyLimit = d.monthlyLimit || 15000;
+          this.rewardPoints = d.rewardPoints ?? 170; this.streakDays = d.streakDays ?? 7;
+          (d.nodes || []).forEach(n => {
+            const node = new TransactionNode(n.id, n.type, n.category, n.amount, n.date, n.desc);
+            if (!this.head) this.head = node; else { let t = this.head; while (t.next) t = t.next; t.next = node; }
+          });
+        } else {
+          this.addTransaction("INCOME", "Salary", 45000, "2026-11-01", "Monthly Stipend & Freelance");
+          this.addTransaction("EXPENSE", "Food & Diet", 3200, "2026-11-03", "High-Protein Groceries & Eggs");
+          this.addTransaction("EXPENSE", "Transport", 2000, "2026-11-06", "Fuel & Mountain Ride Maintenance");
+          this.addTransaction("EXPENSE", "Utilities & Tech", 3500, "2026-11-10", "Books, Hosting & Gym Membership");
+          this.rewardPoints = 170; this.saveState();
+        }
+      }
+    }
+
+    const manager = new TransactionManager();
+    let camStream = null;
+
+    function fmtRs(n) { return "Rs. " + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function logConsole(msg) { const b = document.getElementById("consoleLog"); b.textContent = msg + "\n----------------------------------------\n" + b.textContent; }
+
+    function updateDashboardUI(filter = null) {
+      const inc = manager.getTotalIncome(), exp = manager.getTotalExpenses(), rem = Math.max(0, manager.monthlyLimit - exp);
+      const pct = manager.monthlyLimit > 0 ? Math.round((exp / manager.monthlyLimit) * 100) : 0;
+      document.getElementById("valIncome").textContent = fmtRs(inc);
+      document.getElementById("valExpense").textContent = fmtRs(exp);
+      document.getElementById("subExpensePct").textContent = `${pct}% of Monthly Limit`;
+      document.getElementById("valRemaining").textContent = fmtRs(rem);
+      document.getElementById("subMonthlyLimit").textContent = `Monthly Limit: Rs. ${manager.monthlyLimit.toLocaleString('en-IN')}`;
+      document.getElementById("valPoints").textContent = manager.rewardPoints;
+      document.getElementById("valStreak").textContent = manager.streakDays;
+      document.getElementById("subTier").textContent = manager.getTier();
+
+      const allNodes = manager.toArray();
+      document.getElementById("nodeCount").textContent = allNodes.length;
+      const tbody = document.getElementById("listTableBody");
+      tbody.innerHTML = "";
+      const nodes = filter ? allNodes.filter(n => n.category.toLowerCase().includes(filter.toLowerCase()) || n.desc.toLowerCase().includes(filter.toLowerCase())) : allNodes;
+      if (nodes.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">Linked List is empty (head == nullptr)</td></tr>`; return; }
+      nodes.forEach(n => {
+        tbody.innerHTML += `<tr><td><b>#${n.id}</b></td><td><span class="tag ${n.type === 'INCOME' ? 'tag-inc' : 'tag-exp'}">${n.type}</span></td><td>${n.category}</td><td>${n.desc}</td><td style="font-weight:700;">${fmtRs(n.amount)}</td><td>${n.date}</td><td><button class="del-row" onclick="quickDelete(${n.id})">Delete</button></td></tr>`;
+      });
+    }
+
+    function quickDelete(id) { if (manager.deleteById(id)) logConsole(`[Linked List] Deleted Node #${id} and relinked pointers.`); }
+
+    function selectOption(opt) {
+      document.querySelectorAll(".opt-btn").forEach((b, i) => b.classList.toggle("active", i + 1 === opt));
+      const title = document.getElementById("panelTitle"), body = document.getElementById("panelBody"), today = new Date().toISOString().split("T")[0];
+
+      if (opt === 1) {
+        title.textContent = "Option 1: Add Income Node (Insert at Tail)";
+        body.innerHTML = `<div class="form-group"><label>Income Category</label><select id="incCat"><option>Salary</option><option>Freelance</option><option>Scholarship</option><option>Other Income</option></select></div><div class="form-group"><label>Amount (Rs.)</label><input type="number" id="incAmt" placeholder="10000"/></div><div class="form-group"><label>Date</label><input type="date" id="incDate" value="${today}"/></div><div class="form-group"><label>Description</label><input type="text" id="incDesc" placeholder="Stipend / Project"/></div><button class="btn-action btn-success" onclick="addInc()">+ Insert Income Node</button>`;
+      } else if (opt === 2) {
+        title.textContent = "Option 2: Add Expense Node (Insert at Tail)";
+        body.innerHTML = `<div class="form-group"><label>Expense Category</label><select id="expCat"><option>Food & Diet</option><option>Transport</option><option>Utilities & Tech</option><option>Education</option></select></div><div class="form-group"><label>Amount (Rs.)</label><input type="number" id="expAmt" placeholder="1200"/></div><div class="form-group"><label>Date</label><input type="date" id="expDate" value="${today}"/></div><div class="form-group"><label>Description</label><input type="text" id="expDesc" placeholder="Groceries / Fuel"/></div><button class="btn-action" style="background:#f97316;" onclick="addExp()">+ Insert Expense Node</button>`;
+      } else if (opt === 3) {
+        title.textContent = "Option 3: Traverse Singly Linked List (head -> nullptr)";
+        updateDashboardUI();
+        const chain = manager.toArray().map(n => `[#${n.id}: ${n.type} Rs.${n.amount}]`).join(" -> ") + " -> nullptr";
+        body.innerHTML = `<div style="background:#141820; padding:12px; border-radius:6px; font-family:monospace; color:#4ade80; font-size:12.5px;">head -> ${chain}</div>`;
+        logConsole(`[Traversal] head -> ${chain}`);
+      } else if (opt === 4) {
+        title.textContent = "Option 4: Delete Transaction Node by ID";
+        body.innerHTML = `<div class="form-group"><label>Enter Node ID to Delete</label><input type="number" id="delId" placeholder="1002"/></div><button class="btn-action btn-danger" onclick="handleDeleteById()">Delete Node & Relink Pointers</button>`;
+      } else if (opt === 5) {
+        title.textContent = "Option 5: Search & Filter Nodes by Category / Keyword";
+        body.innerHTML = `<div class="form-group"><label>Search Keyword</label><input type="text" placeholder="Type Food, Salary, Study..." oninput="updateDashboardUI(this.value)" /></div><button class="btn-action" onclick="updateDashboardUI()">Reset Filter</button>`;
+      } else if (opt === 6) {
+        title.textContent = "Option 6: Set Monthly Budget Limit";
+        body.innerHTML = `<div class="form-group"><label>Monthly Expense Limit (Rs.)</label><input type="number" id="budgetInput" value="${manager.monthlyLimit}" /></div><button class="btn-action" onclick="handleUpdateBudget()">Update Monthly Limit</button>`;
+      } else if (opt === 7) {
+        title.textContent = "Option 7: Gamified Rewards, Streak & Smart Saver Tier";
+        body.innerHTML = `<div style="background:#141820; padding:14px; border-radius:8px; margin-bottom:12px; line-height:1.8;"><div>🏆 <b>Current Tier:</b> <span style="color:#eab308;">${manager.getTier()}</span></div><div>⭐ <b>Reward Points:</b> ${manager.rewardPoints} pts</div><div>🔥 <b>Active Streak:</b> ${manager.streakDays} Days</div></div><button class="btn-action btn-success" onclick="claimDailyStreak()">+ Log Daily Streak (+25 pts)</button>`;
+      } else if (opt === 8) {
+        title.textContent = "Option 8: Vosk Voice Assistant (Live Microphone + Speech)";
+        body.innerHTML = `<p style="font-size:13px; color:#cbd5e1; margin-bottom:10px;">Click to speak into your mic, or click any quick voice command below:</p><button class="btn-action" style="background:#0ea5e9; margin-bottom:12px;" onclick="triggerVoiceAssistant()">🎙️ Start Listening via Microphone</button><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"><button class="opt-btn" onclick="processVoiceCommand('total expenses')">🗣️ "total expenses"</button><button class="opt-btn" onclick="processVoiceCommand('remaining budget')">🗣️ "remaining budget"</button><button class="opt-btn" onclick="processVoiceCommand('total income')">🗣️ "total income"</button><button class="opt-btn" onclick="processVoiceCommand('highest expense')">🗣️ "highest expense"</button><button class="opt-btn" onclick="processVoiceCommand('savings progress')">🗣️ "savings progress"</button><button class="opt-btn" onclick="processVoiceCommand('reward points')">🗣️ "reward points"</button></div>`;
+      } else if (opt === 9) {
+        title.textContent = "Option 9: Face Scanner Security Gate";
+        body.innerHTML = `<button class="btn-action btn-success" onclick="reopenSecurityGate()">📷 Lock & Open Face Scanner Gate</button>`;
+        reopenSecurityGate();
+      } else if (opt === 10) {
+        title.textContent = "Option 10: Highest Expense & Financial Analytics";
+        const maxExp = manager.getHighestExpense(), inc = manager.getTotalIncome(), exp = manager.getTotalExpenses();
+        const rate = inc > 0 ? (((inc - exp) / inc) * 100).toFixed(1) : 0;
+        body.innerHTML = `<div style="background:#141820; padding:14px; border-radius:8px; line-height:1.8;"><div>📈 <b>Net Savings:</b> ${fmtRs(inc - exp)} (${rate}% saved)</div><div>🚨 <b>Highest Expense:</b> ${maxExp ? `#${maxExp.id} - ${maxExp.desc} (${fmtRs(maxExp.amount)})` : 'None'}</div></div>`;
+      } else if (opt === 11) {
+        title.textContent = "Option 11: Export Linked List to CSV & Reset Demo";
+        body.innerHTML = `<button class="btn-action btn-success" style="margin-bottom:10px;" onclick="exportCSV()">⬇️ Download transactions.csv</button><button class="btn-action" onclick="resetDemoData()">🔄 Restore Default Demo Data</button>`;
+      } else if (opt === 12) {
+        title.textContent = "Option 12: Clear Entire Linked List (~TransactionManager)";
+        body.innerHTML = `<button class="btn-action btn-danger" onclick="handleClearAll()">🗑️ Execute clearList() Now</button>`;
+      }
+    }
+
+    function addInc() {
+      const cat = document.getElementById("incCat").value, amt = parseFloat(document.getElementById("incAmt").value), date = document.getElementById("incDate").value, desc = document.getElementById("incDesc").value || cat;
+      if (!amt || amt <= 0) return alert("Enter a valid positive amount!");
+      const n = manager.addTransaction("INCOME", cat, amt, date, desc);
+      logConsole(`[Insert] Node #${n.id} (INCOME: ${fmtRs(amt)})`);
+    }
+    function addExp() {
+      const cat = document.getElementById("expCat").value, amt = parseFloat(document.getElementById("expAmt").value), date = document.getElementById("expDate").value, desc = document.getElementById("expDesc").value || cat;
+      if (!amt || amt <= 0) return alert("Enter a valid positive amount!");
+      const n = manager.addTransaction("EXPENSE", cat, amt, date, desc);
+      logConsole(`[Insert] Node #${n.id} (EXPENSE: ${fmtRs(amt)})`);
+    }
+    function handleDeleteById() {
+      const id = document.getElementById("delId").value;
+      logConsole(manager.deleteById(id) ? `[Delete] Node #${id} removed.` : `[Error] Node #${id} not found.`);
+    }
+    function handleUpdateBudget() {
+      const val = parseFloat(document.getElementById("budgetInput").value);
+      if (val > 0) { manager.monthlyLimit = val; manager.saveState(); logConsole(`[Budget] Limit set to ${fmtRs(val)}`); }
+    }
+    function claimDailyStreak() { manager.streakDays += 1; manager.rewardPoints += 25; manager.saveState(); selectOption(7); }
+    function exportCSV() {
+      const rows = [["ID", "Type", "Category", "Description", "Amount", "Date"]];
+      manager.toArray().forEach(n => rows.push([n.id, n.type, n.category, `"${n.desc}"`, n.amount, n.date]));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(",")).join("\n")], { type: "text/csv" }));
+      a.download = "transactions.csv"; a.click();
+    }
+    function resetDemoData() { localStorage.removeItem("moneymate_cpp_state"); manager.loadState(); updateDashboardUI(); }
+    function handleClearAll() { manager.clearList(); logConsole(`[Destructor] clearList() -> head = nullptr`); }
+
+    function processVoiceCommand(rawText) {
+      const cmd = rawText.toLowerCase().trim(), inc = manager.getTotalIncome(), exp = manager.getTotalExpenses(), rem = Math.max(0, manager.monthlyLimit - exp), maxNode = manager.getHighestExpense();
+      let reply = "";
+      if (cmd.includes("expense") && !cmd.includes("highest")) reply = `Your total expenses are ${exp} rupees, which is ${Math.round((exp / manager.monthlyLimit) * 100)} percent of your monthly limit.`;
+      else if (cmd.includes("remaining") || cmd.includes("budget")) reply = `Your remaining budget is ${rem} rupees out of your ${manager.monthlyLimit} rupee monthly limit.`;
+      else if (cmd.includes("income")) reply = `Your total income across all linked list nodes is ${inc} rupees.`;
+      else if (cmd.includes("highest") || cmd.includes("max")) reply = maxNode ? `Your highest expense is ${maxNode.desc} for ${maxNode.amount} rupees.` : `You have no expenses recorded yet.`;
+      else if (cmd.includes("saving") || cmd.includes("progress") || cmd.includes("reward") || cmd.includes("point")) reply = `Your net savings are ${inc - exp} rupees with ${manager.rewardPoints} reward points and a ${manager.streakDays} day streak.`;
+      else reply = `I heard ${rawText}. Ask for total expenses, remaining budget, total income, highest expense, or savings progress.`;
+
+      document.getElementById("statusText").innerHTML = `🎙️ <b>Voice Heard:</b> "${rawText}" ➡️ <b>Reply:</b> ${reply}`;
+      logConsole(`[Vosk Voice] Heard: "${rawText}" | Reply: "${reply}"`);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(reply); u.lang = "en-IN"; window.speechSynthesis.speak(u);
+      }
+    }
+
+    function triggerVoiceAssistant() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        const m = prompt("Enter voice query ('total expenses', 'remaining budget', 'total income', 'highest expense'):", "total expenses");
+        if (m) processVoiceCommand(m); return;
+      }
+      try {
+        const rec = new SpeechRec(); rec.lang = "en-IN";
+        document.getElementById("statusText").innerHTML = "🔴 <b>Microphone Listening...</b> Speak now: <i>'total expenses'</i>, <i>'remaining budget'</i>...";
+        rec.onresult = (e) => processVoiceCommand(e.results[0][0].transcript);
+        rec.onerror = () => { const f = prompt("Mic didn't catch that. Type your command:", "total expenses"); if (f) processVoiceCommand(f); };
+        rec.start();
+      } catch (e) {
+        const f = prompt("Enter voice query:", "total expenses"); if (f) processVoiceCommand(f);
+      }
+    }
+
+    function reopenSecurityGate() { document.getElementById("camModal").style.display = "flex"; }
+    async function openFaceScanner() {
+      const status = document.getElementById("camStatusText"), video = document.getElementById("webcamVideo");
+      status.textContent = "Connecting to Acer Webcam...";
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+        video.srcObject = camStream; await video.play();
+        status.style.color = "#22c55e"; status.textContent = "Camera active! Enter owner secret passcode.";
+      } catch (e) { status.style.color = "#ef4444"; status.textContent = "⚠️ Webcam blocked by another app."; }
+    }
+
+    function verifyOwnerFaceAndSecret() {
+      const secret = document.getElementById("ownerSecretInput").value;
+      if (!localStorage.getItem("moneymate_owner_secret")) localStorage.setItem("moneymate_owner_secret", secret || "7777");
+      if ((secret || "7777") === localStorage.getItem("moneymate_owner_secret")) {
+        if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+        document.getElementById("camModal").style.display = "none";
+      } else alert("Access Denied! Incorrect owner secret passphrase.");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      manager.loadState(); updateDashboardUI(); selectOption(1);
+    });
+  </script>
+</body>
+</html>

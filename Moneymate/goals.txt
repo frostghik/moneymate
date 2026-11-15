@@ -1,0 +1,2 @@
+1|Emergency Fund|25000|12000
+2|Hardware Upgrade|40000|18500
